@@ -1,0 +1,22 @@
+services:
+  rag-dashboard:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      # Bind-mount: saved index survives container restarts and is inspectable on the host
+      - ./saved_index:/app/saved_index
+      # Named volume: Hugging Face model weights are downloaded once (~1 GB)
+      # and persist across image rebuilds
+      - hf-cache:/root/.cache/huggingface
+    env_file:
+      - .env
+    environment:
+      - TOKENIZERS_PARALLELISM=false
+      - OMP_NUM_THREADS=4
+    restart: unless-stopped
+    # Give the container enough time to download models on first start
+    stop_grace_period: 30s
+
+volumes:
+  hf-cache:

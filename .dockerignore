@@ -1,0 +1,26 @@
+# Keep the Docker build context small and clean
+
+# Virtual environment (dependencies are installed inside the image)
+rag-env/
+.venv/
+venv/
+
+# Saved index (mounted as a volume at runtime)
+saved_index/
+
+# Model cache (mounted as a named volume at runtime)
+.cache/
+hf_cache/
+
+# Git & IDE
+.git/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python bytecode
+__pycache__/
+*.py[cod]

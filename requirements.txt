@@ -1,0 +1,23 @@
+# RAG Dashboard — Python 3.11 compatible dependencies
+# Install with: pip install -r requirements.txt
+
+# --- Web UI ---
+streamlit>=1.35.0
+
+# --- Embeddings ---
+sentence-transformers>=2.7.0
+
+# --- Vector store ---
+faiss-cpu>=1.8.0          # Use faiss-gpu if you have CUDA; same API
+
+# --- LLM (flan-t5-base) ---
+transformers>=4.41.0
+torch>=2.2.0              # CPU build is fine; GPU build speeds up generation
+
+# --- Utilities (pulled in transitively, pinned for reproducibility) ---
+numpy>=1.26.0
+huggingface-hub>=0.23.0
+tokenizers>=0.19.0
+accelerate>=0.30.0        # optional but silences some transformers warnings
+sentencepiece>=0.2.0      # required by flan-t5 tokeniser
+protobuf>=4.25.0          # required by sentencepiece
