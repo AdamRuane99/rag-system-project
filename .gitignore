@@ -32,6 +32,9 @@ saved_index/
 # (e.g. GPU settings) are never committed
 docker-compose.override.yml
 
+# ── Personal notes (private, never pushed) ────────────────────────────────────
+NOTES.md
+
 # ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
