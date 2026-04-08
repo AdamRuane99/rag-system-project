@@ -1,3 +1,13 @@
+---
+title: RAG Document Dashboard
+emoji: 🔍
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_file: app.py
+pinned: false
+---
+
 # RAG Dashboard
 
 A **portfolio-ready Retrieval-Augmented Generation (RAG) application** built with
