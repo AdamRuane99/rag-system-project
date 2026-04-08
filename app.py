@@ -9,7 +9,7 @@ import logging
 import streamlit as st
 
 from rag_pipeline import RAGPipeline, RAGResult
-from utils import get_sample_documents, load_text_from_upload, fetch_wikipedia_articles
+from utils import get_sample_documents, load_text_from_upload
 
 logging.basicConfig(level=logging.INFO)
 
@@ -373,7 +373,7 @@ with st.sidebar:
 
     data_source = st.radio(
         "Choose data source",
-        options=["Use built-in sample data", "Upload your own file", "Fetch from Wikipedia"],
+        options=["Use built-in sample data", "Upload your own file"],
         index=0,
         label_visibility="collapsed",
     )
@@ -417,40 +417,6 @@ with st.sidebar:
                         )
                     except Exception as e:
                         st.error(f"Ingestion failed: {e}")
-
-    # ---- Option C: Wikipedia ----
-    elif data_source == "Fetch from Wikipedia":
-        st.caption("One topic per line — uses the free Wikipedia API, no key needed.")
-        topics_input = st.text_area(
-            "Wikipedia topics",
-            value="Retrieval-augmented generation\nFAISS\nSentence embedding",
-            height=120,
-            label_visibility="collapsed",
-        )
-        if st.button("Fetch & index", type="primary", use_container_width=True):
-            topics = [t.strip() for t in topics_input.splitlines() if t.strip()]
-            if not topics:
-                st.warning("Enter at least one topic.")
-            else:
-                with st.spinner(f"Fetching {len(topics)} Wikipedia article(s)…"):
-                    try:
-                        docs = fetch_wikipedia_articles(topics)
-                        if not docs:
-                            st.error("No articles were fetched. Check that the topic names match Wikipedia article titles.")
-                        else:
-                            pipeline.reset()
-                            pipeline.ingest(docs)
-                            st.session_state.ingested  = True
-                            st.session_state.doc_count = len(docs)
-                            st.session_state.history   = []
-                            missed = len(topics) - len(docs)
-                            note   = f" ({missed} topic(s) not found)" if missed else ""
-                            st.success(
-                                f"Fetched {len(docs)} article(s){note} "
-                                f"({pipeline.num_chunks} chunks)."
-                            )
-                    except Exception as e:
-                        st.error(f"Wikipedia fetch failed: {e}")
 
     # ---- Status summary ----
     if st.session_state.ingested:

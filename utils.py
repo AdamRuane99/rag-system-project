@@ -8,10 +8,7 @@ Handles:
 """
 
 import re
-import json
 import logging
-import urllib.parse
-import urllib.request
 from typing import List
 
 logger = logging.getLogger(__name__)
@@ -220,68 +217,6 @@ SAMPLE_DOCUMENTS = [
 def get_sample_documents() -> List[dict]:
     """Return the built-in sample documents (list of dicts with 'title' and 'content')."""
     return SAMPLE_DOCUMENTS
-
-
-# ---------------------------------------------------------------------------
-# Wikipedia article fetching — no API key required
-# ---------------------------------------------------------------------------
-
-def fetch_wikipedia_articles(topics: List[str]) -> List[dict]:
-    """
-    Fetch article text from the Wikipedia REST API for each topic.
-
-    Uses the /page/summary endpoint (no key, free, CC-BY-SA licensed).
-    Silently skips articles that cannot be fetched or are too short.
-
-    Args:
-        topics: List of Wikipedia article titles, e.g. ["FAISS", "Transformer model"].
-
-    Returns:
-        List of {"title": str, "content": str} dicts.
-    """
-    docs: List[dict] = []
-    for topic in topics:
-        topic = topic.strip()
-        if not topic:
-            continue
-
-        # Use the full article extract via the query API for richer content
-        api_url = (
-            "https://en.wikipedia.org/w/api.php?"
-            + urllib.parse.urlencode({
-                "action": "query",
-                "prop": "extracts",
-                "titles": topic,
-                "format": "json",
-                "explaintext": "true",
-                "redirects": "true",
-            })
-        )
-        try:
-            req = urllib.request.Request(
-                api_url,
-                headers={"User-Agent": "rag-dashboard/1.0 (educational project)"},
-            )
-            with urllib.request.urlopen(req, timeout=12) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-
-            pages = data.get("query", {}).get("pages", {})
-            for page_id, page in pages.items():
-                if page_id == "-1":
-                    logger.warning("Wikipedia: article not found — '%s'", topic)
-                    continue
-                title   = page.get("title", topic)
-                extract = clean_text(page.get("extract", ""))
-                if len(extract) < 100:          # skip stubs / disambiguation pages
-                    logger.warning("Wikipedia: article too short, skipping — '%s'", title)
-                    continue
-                docs.append({"title": f"Wikipedia: {title}", "content": extract})
-                logger.info("Wikipedia: fetched '%s' (%d chars)", title, len(extract))
-
-        except Exception as exc:
-            logger.warning("Wikipedia: could not fetch '%s': %s", topic, exc)
-
-    return docs
 
 
 # ---------------------------------------------------------------------------
