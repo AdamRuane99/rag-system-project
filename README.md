@@ -8,10 +8,43 @@ app_file: app.py
 pinned: false
 ---
 
-# RAG Dashboard
+# RAG Document Dashboard
 
-A **portfolio-ready Retrieval-Augmented Generation (RAG) application** built with
-Streamlit, Hugging Face models, and FAISS — no paid APIs, fully local.
+A **production-ready Retrieval-Augmented Generation (RAG) application** — fully free to run and deploy, with zero API costs. Built with Streamlit, Hugging Face models, and FAISS. All AI runs locally; no OpenAI, no paid APIs, no billing.
+
+---
+
+## Live Demo
+
+**Try it here:** [huggingface.co/spaces/AdamRuane99/rag-project-documents](https://huggingface.co/spaces/AdamRuane99/rag-project-documents)
+
+> **Note on load time:** The app is hosted on Hugging Face Spaces' free tier. If it hasn't been visited in a while, the Space goes to sleep to save resources. When you first open it, it may show a loading screen for **1-2 minutes** while it wakes up and downloads the AI models. This is a one-time warm-up — once it's running, it responds normally. If you see a grey screen, just wait and refresh.
+
+---
+
+## What It Does
+
+Load a set of documents, ask a natural-language question, and the app:
+
+1. **Embeds** your documents into a vector space using `all-MiniLM-L6-v2`
+2. **Retrieves** the most relevant chunks using FAISS similarity search
+3. **Generates** a grounded answer using `flan-t5-base`, citing only what's in your documents
+
+No hallucination from the open web — answers are always grounded in the documents you loaded.
+
+---
+
+## Why It's Free (and Production-Ready)
+
+| | Detail |
+|---|---|
+| **Hosting** | Hugging Face Spaces — free CPU tier, public URL, no card required |
+| **Models** | Open-source, downloaded once and cached inside the container |
+| **No API keys** | Everything runs inside the container — no OpenAI, no Anthropic, no cloud LLM calls |
+| **Dockerised** | Runs identically locally or in any cloud environment |
+| **Persistent index** | FAISS index can be saved and reloaded between sessions |
+
+The only trade-off on the free tier is speed — CPU inference takes ~10-20 seconds per query. Swap to a GPU-backed host and it drops to under 2 seconds, with no code changes needed.
 
 ---
 
@@ -26,7 +59,7 @@ User query
     ▼
 [Retrieval]  ─────── rag_pipeline.py
   ├── Embedding:  sentence-transformers/all-MiniLM-L6-v2
-  └── Vector DB:  FAISS (in-memory, IndexFlatIP / cosine)
+  └── Vector DB:  FAISS (IndexFlatIP / cosine similarity)
     │
     ▼
 [Generation] ─────── rag_pipeline.py
@@ -44,29 +77,28 @@ Answer + source references  →  Streamlit UI
 | `rag_pipeline.py` | Ingestion, FAISS indexing, retrieval, generation |
 | `utils.py` | Text chunking, sample data, file parsing helpers |
 | `requirements.txt` | Python dependencies |
-| `.env.example` | Optional environment variable template |
+| `Dockerfile` | Container definition for local and cloud deployment |
 
 ---
 
-## Quick Start
+## Quick Start (Run Locally)
 
-### 1. Clone / download the repo
+### 1. Clone the repo
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/AdamRuane99/rag-system-project
 cd rag-system-project
 ```
 
-### 2. Create a virtual environment (recommended)
+### 2. Create a virtual environment
 
 ```bash
-# Python 3.11
 python -m venv .venv
 
-# Activate — macOS/Linux
+# macOS/Linux
 source .venv/bin/activate
 
-# Activate — Windows (PowerShell)
+# Windows (PowerShell)
 .venv\Scripts\Activate.ps1
 ```
 
@@ -76,8 +108,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-> **First run note:** Hugging Face will download `all-MiniLM-L6-v2` (~90 MB) and
-> `flan-t5-base` (~990 MB) on first use. These are cached locally afterwards.
+> First run will download `all-MiniLM-L6-v2` (~90 MB) and `flan-t5-base` (~250 MB). These are cached locally afterwards.
 
 ### 4. Run the app
 
@@ -85,120 +116,37 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-OR Run in Powershell terminal
-```bash
-cd "c:\Users\user\Desktop\source\repos\rag-system-project"; rag-env\Scripts\streamlit.exe run app.py
-```
-
-
-Open the URL shown in your terminal (usually `http://localhost:8501`).
+Open `http://localhost:8501` in your browser.
 
 ---
 
 ## Using the Dashboard
 
-1. **Load data** — choose *"Use built-in sample data"* in the sidebar and click
-   **Load sample documents** (10 pre-generated articles on tech, finance, science, etc.).
-   Alternatively, upload your own `.txt` or `.csv` file.
+1. **Load data** — choose *"Use built-in sample data"* in the sidebar and click **Load sample documents** (10 pre-built articles covering tech, finance, health, space, and more). Or upload your own `.txt` or `.csv` file.
 
-2. **Ask a question** — type a natural-language question in the main input and
-   press **Ask**.
+2. **Ask a question** — type any natural-language question and press **Ask**.
 
-3. **Review the answer** — the generated answer appears with a card at the top.
-   Expand **Source references** to see which chunks were retrieved and their
-   cosine-similarity scores.
+3. **Review the answer** — the generated answer appears at the top. Expand **Source references** to see exactly which document chunks were retrieved and their similarity scores.
 
-### Example questions (sample data)
+### Example questions (with sample data)
 
 - *"What drove Apex Technologies' revenue growth in Q3 2024?"*
 - *"How are GLP-1 drugs being used beyond obesity treatment?"*
 - *"What progress has been made in quantum error correction?"*
-- *"Which countries drove EV sales growth?"*
+- *"Which countries led EV sales growth?"*
 
 ---
 
-## Configuration
-
-### Retrieval settings
-
-Use the **Top-K** slider in the sidebar (1–6) to control how many chunks are
-passed to the language model as context.
-
-### Chunking
-
-In `rag_pipeline.py`, adjust `RAGPipeline` defaults:
-
-```python
-RAGPipeline(
-    chunk_size=300,    # words per chunk
-    chunk_overlap=50,  # shared words between adjacent chunks
-    top_k=3,           # chunks retrieved per query
-)
-```
-
-### Switching the LLM
-
-To use a larger / GPU-accelerated model, edit `rag_pipeline.py`:
-
-```python
-LLM_MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2"   # requires GPU + ~14 GB VRAM
-```
-
-> For decoder-only models (Mistral, LLaMA, Phi) also switch from
-> `AutoModelForSeq2SeqLM` → `AutoModelForCausalLM` and update `generate()` to use
-> a causal prompt format.
-
-### Environment variables
-
-Copy `.env.example` to `.env` and adjust as needed:
-
-```bash
-cp .env.example .env
-```
-
----
-
-## GPU acceleration
-
-The app runs on CPU by default. To use a CUDA GPU:
-
-```bash
-# Replace faiss-cpu with faiss-gpu
-pip install faiss-gpu
-
-# PyTorch with CUDA (example — match your CUDA version)
-pip install torch --index-url https://download.pytorch.org/whl/cu121
-```
-
-The models will automatically use the GPU when `torch.cuda.is_available()`.
-
----
-
-## Project structure
-
-```
-rag-system-project/
-├── app.py              # Streamlit UI
-├── rag_pipeline.py     # Ingestion, retrieval, generation
-├── utils.py            # Chunking, sample data, file loaders
-├── requirements.txt    # Dependencies
-├── .env.example        # Optional env-var template
-└── README.md           # This file
-```
-
----
-
-## Tech stack
+## Tech Stack
 
 | Component | Library / Model |
 |-----------|----------------|
 | UI | [Streamlit](https://streamlit.io) |
-| Embeddings | [sentence-transformers/all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) |
+| Embeddings | [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) |
 | Vector store | [FAISS](https://github.com/facebookresearch/faiss) |
 | Language model | [google/flan-t5-base](https://huggingface.co/google/flan-t5-base) |
 | ML framework | [PyTorch](https://pytorch.org) + [Hugging Face Transformers](https://huggingface.co/docs/transformers) |
-
-**No OpenAI. No paid APIs. Fully offline after initial model download.**
+| Deployment | [Docker](https://www.docker.com) + [Hugging Face Spaces](https://huggingface.co/spaces) |
 
 ---
 
