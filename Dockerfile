@@ -26,13 +26,13 @@ RUN mkdir -p /app/saved_index
 ENV TOKENIZERS_PARALLELISM=false \
     OMP_NUM_THREADS=4
 
-EXPOSE 8501
+EXPOSE 7860
 
 # Streamlit has a built-in health endpoint at /_stcore/health
 HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
-    CMD curl -f http://localhost:8501/_stcore/health || exit 1
+    CMD curl -f http://localhost:7860/_stcore/health || exit 1
 
 CMD ["streamlit", "run", "app.py", \
-     "--server.port=8501", \
+     "--server.port=7860", \
      "--server.address=0.0.0.0", \
      "--server.headless=true"]
