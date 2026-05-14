@@ -266,7 +266,11 @@ class RAGPipeline:
         logger.info("Loading LLM: %s", self.LLM_MODEL_NAME)
         from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
         self._tokenizer = AutoTokenizer.from_pretrained(self.LLM_MODEL_NAME)
-        self._llm = AutoModelForSeq2SeqLM.from_pretrained(self.LLM_MODEL_NAME)
+        self._llm = AutoModelForSeq2SeqLM.from_pretrained(
+            self.LLM_MODEL_NAME,
+            device_map=None,
+            low_cpu_mem_usage=False,
+        )
         self._llm.eval()
 
     # ------------------------------------------------------------------
